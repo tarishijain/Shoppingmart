@@ -1,14 +1,56 @@
-from django.http import HttpResponse
-from django.shortcuts import render
+from django.shortcuts import render, redirect
+from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth import logout, authenticate, login
+from django.contrib import messages
+from .forms import NewUserForm
+from shop.models import Order
+from django.http import JsonResponse
 
-def home(request):
-    category = ['Clothes', 'Smartphones', 'Home Appliances', 'Shoes','Electronics Devices','Opticals', 'Personal Care', 'Jewelery & Acc', 'Stationary', 'Bags']
-    params = {'category' : category}
-    #return render(request, 'index.html', params)
-    return HttpResponse("<h2>Hello Everyone, Welcome to the Shopping Mart. <br> Happy Shopping..! </h2>")
+def signup(request):
+    if request.method == "POST":
+        form = NewUserForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            username = form.cleaned_data.get('username')
+            login(request, user)
+            messages.info(request, "Signed up successfully!")
+            return redirect("/")
 
-def about(request):
-    return HttpResponse("<h1>This is a Shopping Mart.<br> Here you can buy multiple products with reasonable rates, best quality assured. </h1>") 
+        else:
+            for msg in form.error_messages:
+                print(form.error_messages[msg])
 
-def contact(request):   
-    return HttpResponse("<h1> Contact Us <br> email id : xyz@gmail.com <br>   Ph.No : 0562-2252098 </h1>")       
+            return render(request, "login/signup.html", context={"form":form})
+
+    form = NewUserForm
+    return render(request, "login/signup.html", context={"form":form})
+
+
+def logout_request(request):
+    logout(request)
+    messages.info(request, "Logged out successfully!")
+    return redirect("/")
+
+
+def login_request(request):
+    if request.method == 'POST':
+        form = AuthenticationForm(request=request, data=request.POST)
+        if form.is_valid():
+            username = form.cleaned_data.get('username')
+            password = form.cleaned_data.get('password')
+            user = authenticate(username=username, password=password)
+            if user is not None:
+                login(request, user)
+                messages.info(request, f"You are now logged in as {username}")
+                return redirect('/')
+            else:
+                messages.error(request, "Invalid username or password.")
+        else:
+            messages.error(request, "Invalid username or password.")
+    form = AuthenticationForm()
+    return render(request, "login/login.html", context={"form":form})
+
+def account(request):
+    orders = Order.objects.all().order_by('-order_id')
+    return render(request, 'login/account.html', {'orders' : orders})
+   

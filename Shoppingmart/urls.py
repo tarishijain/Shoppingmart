@@ -22,10 +22,16 @@ from shop import views as viewshop
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', viewshop.crud, name = 'home'),
-    path('aboutus', views.about, name = 'about'),
-    path('contactus', views.contact, name = 'contact'),
+    #path('aboutus', views.about, name = 'about'),
+    #path('contactus', views.contact, name = 'contact'),
     path('category/<str:cat>', viewshop.showcategory, name = 'showcategory'),
     path('brands/<str:comp>', viewshop.showcompany, name = 'showcompany'),
     path('product/<str:product_id>', viewshop.showproduct, name = 'showproduct'),
+    path('signup/', views.signup, name = "signup"),
+    path('logout/', views.logout_request, name = "logout"),
+    path('login/', views.login_request, name = "login"),
+    path('account/', views.account, name = "account"),
+    path('order/', viewshop.order, name = "order"),
+    path('api/', include('api.urls')),
     path('shop/', include('shop.urls'))
 ] + static(settings.MEDIA_URL, document_root = settings.MEDIA_ROOT)
